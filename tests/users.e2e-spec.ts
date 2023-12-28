@@ -16,6 +16,38 @@ describe('Users e2e', () => {
 			.send({ email: 'd@i.com', password: '1' });
 		expect(res.statusCode).toBe(422);
 	});
+
+	it('Login - success', async () => {
+		const res = await request(application.app)
+			.post('/users/login')
+			.send({ email: 'd@i.com', password: '1' });
+		expect(res.body.jwt).not.toBeUndefined();
+	});
+
+	it('Login - error', async () => {
+		const res = await request(application.app)
+			.post('/users/login')
+			.send({ email: 'd@i.com', password: '2' });
+		expect(res.statusCode).toBe(401);
+	});
+
+	it('info - success', async () => {
+		const login = await request(application.app)
+			.post('/users/login')
+			.send({ email: 'd@i.com', password: '1' });
+		const res = await request(application.app)
+			.get('/users/info')
+			.set('Authorization', `Bearer ${login.body.jwt}`);
+		expect(res.body.email).toBe('d@i.com');
+	});
+
+	it('info - error', async () => {
+		const login = await request(application.app)
+			.post('/users/login')
+			.send({ email: 'd@i.com', password: '1' });
+		const res = await request(application.app).get('/users/info').set('Authorization', `Bearer 1`);
+		expect(res.statusCode).toBe(401);
+	});
 });
 
 afterAll(() => {
